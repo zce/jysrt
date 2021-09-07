@@ -263,7 +263,7 @@
 
           const { tracks, materials } = JSON.parse(text)
 
-          const { segments } = tracks.filter(t => t.type === 'text').sort((a, b) => a.segments.length - b.segments.length)[1]
+          const { segments } = tracks.filter(t => t.type === 'text').sort((a, b) => b.segments.length - a.segments.length)[0]
 
           const srt = segments.map((item, index) => index +
             `\n${parseTime(item.target_timerange.start)} --> ${parseTime(item.target_timerange.start + item.target_timerange.duration)}` +
