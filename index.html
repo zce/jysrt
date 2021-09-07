@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>jysrt</title>
+    <style>
+      :root {
+        --color-primary: #5c7cfa;
+        --color-primary-dark: #4263eb;
+        --color-primary-alpha: #5c7cfa50;
+
+        --body-color: #646b74;
+        --body-bg: #f8f9fa;
+
+        --border-color: #dee2e6;
+      }
+
+      body {
+        max-width: 50rem;
+        margin-left: auto;
+        margin-right: auto;
+        padding-left: 2rem;
+        padding-right: 2rem;
+        color: var(--body-color);
+        background: var(--body-bg);
+        font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        line-height: 1.5;
+        text-align: center;
+        -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+        text-rendering: optimizelegibility;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      h1 {
+        font-size: 5rem;
+        font-weight: 300;
+        text-align: center;
+        opacity: 0.2;
+      }
+
+      .dropbox {
+        margin-bottom: 30px;
+        padding: 30px;
+        border: 2px dashed var(--border-color);
+        border-radius: 8px;
+        background: #fff;
+        transition: border 0.3s;
+      }
+
+      .dropbox * {
+        pointer-events: none;
+      }
+
+      .dropbox svg {
+        max-width: 100px;
+      }
+
+      .dropbox:hover, .dropbox.active {
+        border-color: var(--color-primary);
+      }
+
+      .output {
+        display: none;
+      }
+
+      textarea {
+        -webkit-appearance: none;
+        appearance: none;
+        display: block;
+        width: 100%;
+        padding: .5rem 1rem;
+        border: 1px solid var(--border-color);
+        border-radius: .25rem;
+        box-sizing: border-box;
+        color: #33404d;
+        line-height: inherit;
+        font-size: 1rem;
+        transition: border .3s, box-shadow .3s;
+      }
+
+      textarea:focus {
+        box-shadow: 0 0 0 .25rem var(--color-primary-alpha);
+        border-color: var(--color-primary);
+        outline: 0;
+      }
+
+      footer {
+        margin-top: 3rem;
+        padding: 1rem;
+        text-align: center;
+        opacity: 0.5;
+      }
+
+      footer i {
+        font-style: normal;
+        color: #ff8787;
+      }
+      a {
+        color: var(--color-primary);
+        text-decoration: none;
+        transition: color 0.3s;
+      }
+
+      a:hover {
+        color: var(--color-primary);
+        text-decoration: underline;
+      }
+    </style>
+  </head>
+  <body>
+    <header><h1>jysrt</h1></header>
+    <div class="dropbox">
+      <svg viewBox="0 0 512 512">
+        <path
+          d="M80 152v256a40.12 40.12 0 0 0 40 40h272a40.12 40.12 0 0 0 40-40V152"
+          fill="none"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="32"
+        ></path>
+        <rect
+          x="48"
+          y="64"
+          width="416"
+          height="80"
+          rx="28"
+          ry="28"
+          fill="none"
+          stroke="currentColor"
+          stroke-linejoin="round"
+          stroke-width="32"
+        ></rect>
+        <path
+          fill="none"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="32"
+          d="M320 304l-64 64l-64-64"
+        ></path>
+        <path
+          fill="none"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="32"
+          d="M256 345.89V224"
+        ></path>
+      </svg>
+      <h3>点击选择或者拖动至此</h3>
+      <p>选择剪映项目中 template.tmp 文件到该区域来解析字幕</p>
+    </div>
+    <div class="output">
+      <h3>↓↓↓↓↓</h3>
+      <textarea id="editor" cols="30" rows="20"></textarea>
+    </div>
+    <footer>
+      This <a href="https://zce.me/jysrt">service</a> is hosted on <a href="https://github.com">GitHub</a><br />
+      <a href="https://github.com/zce/jysrt">&lt;/&gt;</a> with <i>&hearts;</i> by <a href="https://zce.me">zce</a>
+    </footer>
+    <script>
+      const pad = num => (num < 10 ? '0' : '') + num
+
+      const parseTime = time => {
+        time = time / 1000000
+        const h = Math.floor(time / 3600)
+        const m = Math.floor((time - h * 3600) / 60)
+        const s = Math.floor(time - h * 3600 - m * 60)
+        const ms = time - Math.floor(time)
+        return `${pad(h)}:${pad(m)}:${pad(s)},${ms.toFixed(3).substr(2)}`
+      }
+
+      const readFile = file => new Promise((resolve, reject) => {
+        const reader = new FileReader()
+        reader.addEventListener('load', () => {
+          resolve(reader.result)
+        })
+        reader.addEventListener('error', () => {
+          reject(reader.error)
+        })
+        reader.readAsText(file)
+      })
+
+      const dropbox = document.querySelector('.dropbox')
+      const output = document.querySelector('.output')
+      const editor = output.querySelector('#editor')
+
+      dropbox.addEventListener('dragenter', e => {
+        e.stopPropagation()
+        e.preventDefault()
+        dropbox.classList.add('active')
+      }, false)
+
+      dropbox.addEventListener('dragover', e => {
+        e.stopPropagation()
+        e.preventDefault()
+      }, false)
+
+      dropbox.addEventListener('dragleave', e => {
+        e.stopPropagation()
+        e.preventDefault()
+        dropbox.classList.remove('active')
+      }, false)
+
+      dropbox.addEventListener('drop', async e => {
+        e.stopPropagation()
+        e.preventDefault()
+
+        const [file] = e.dataTransfer.files
+
+        if (!['draft_info.json', 'template.tmp'].includes(file.name)) {
+          return alert('请选择 draft_info.json 或者 template.tmp 文件')
+        }
+
+        try {
+          const text = await readFile(file)
+
+          const { tracks, materials } = JSON.parse(text)
+
+          const { segments } = tracks.filter(t => t.type === 'text').sort((a, b) => a.segments.length - b.segments.length)[1]
+
+          const srt = segments.map((item, index) => index +
+            `\n${parseTime(item.target_timerange.start)} --> ${parseTime(item.target_timerange.start + item.target_timerange.duration)}` +
+            `\n${materials.texts.find(t => t.id === item.material_id).content}\n`).join('\n')
+
+          editor.value = srt.trim()
+          output.style.display = 'block'
+        } catch (e) {
+          alert('读取文件失败: ' + e.message)
+        }
+      }, false)
+    </script>
+  </body>
+</html>
