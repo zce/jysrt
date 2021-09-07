@@ -40,12 +40,12 @@
       }
 
       .dropbox {
-        margin-bottom: 30px;
-        padding: 30px;
+        margin-bottom: 1rem;
+        padding: 2rem;
         border: 2px dashed var(--border-color);
-        border-radius: 8px;
+        border-radius: .5rem;
         background: #fff;
-        transition: border 0.3s;
+        transition: border .3s;
       }
 
       .dropbox * {
@@ -69,6 +69,7 @@
         appearance: none;
         display: block;
         width: 100%;
+        margin-bottom: 1rem;
         padding: .5rem 1rem;
         border: 1px solid var(--border-color);
         border-radius: .25rem;
@@ -85,11 +86,42 @@
         outline: 0;
       }
 
+      button {
+        appearance: none;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+        margin-bottom: 5rem;
+        padding: .5rem .75rem;
+        border: 1px solid var(--color-primary);
+        border-radius: .25rem;
+        background: var(--color-primary);
+        color: #fff;
+        font-size: 1rem;
+        font-weight: 500;
+        line-height: inherit;
+        cursor: pointer;
+        user-select: none;
+        transition: border .3s, background .3s,;
+      }
+
+      button:hover {
+        border-color: var(--color-primary-dark);
+        background: var(--color-primary-dark);
+      }
+
+      button:focus {
+        box-shadow: 0 0 0 .25rem var(--color-primary-alpha);
+        border-color: var(--color-primary);
+        outline: 0;
+      }
+
       footer {
         margin-top: 3rem;
         padding: 1rem;
         text-align: center;
-        opacity: 0.5;
+        opacity: .5;
       }
 
       footer i {
@@ -99,7 +131,7 @@
       a {
         color: var(--color-primary);
         text-decoration: none;
-        transition: color 0.3s;
+        transition: color .3s;
       }
 
       a:hover {
@@ -155,6 +187,7 @@
     <div class="output">
       <h3>↓↓↓↓↓</h3>
       <textarea id="editor" cols="30" rows="20"></textarea>
+      <button id="download">下载 srt 文件</button>
     </div>
     <footer>
       This <a href="https://zce.me/jysrt">service</a> is hosted on <a href="https://github.com">GitHub</a><br />
@@ -183,9 +216,20 @@
         reader.readAsText(file)
       })
 
+      const download = (filename, text) => {
+        const element = document.createElement('a')
+        element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text))
+        element.setAttribute('download', filename)
+        element.style.display = 'none'
+        document.body.appendChild(element)
+        element.click()
+        document.body.removeChild(element)
+      }
+
       const dropbox = document.querySelector('.dropbox')
       const output = document.querySelector('.output')
       const editor = output.querySelector('#editor')
+      const btn = output.querySelector('#download')
 
       dropbox.addEventListener('dragenter', e => {
         e.stopPropagation()
@@ -231,6 +275,10 @@
           alert('读取文件失败: ' + e.message)
         }
       }, false)
+
+      btn.addEventListener('click', () => {
+        download('output.srt', editor.value)
+      })
     </script>
   </body>
 </html>
